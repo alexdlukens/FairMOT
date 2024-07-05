@@ -100,6 +100,7 @@ class OptsNamespace(argparse.Namespace):
     self.exp_dir: str
     self.save_dir: str
     self.debug_dir: str
+    self.show_image: bool
 
 class opts(object):
   def __init__(self):
@@ -253,6 +254,7 @@ class opts(object):
                              help='category specific bounding box size.')
     self.parser.add_argument('--not_reg_offset', action='store_true',
                              help='not regress local offset.')
+    self.parser.add_argument("--show_image", action="store_true", help="show image during demo")
 
   def parse(self, args='') -> OptsNamespace:
     opt: OptsNamespace

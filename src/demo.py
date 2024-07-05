@@ -2,22 +2,26 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import _init_paths
+import sys
+import pathlib
+sys.path.append(str(pathlib.Path(__file__).parent.parent))
+
+import src._init_paths
 
 import logging
 import os
 import os.path as osp
-from opts import opts
-from tracking_utils.utils import mkdir_if_missing
-from tracking_utils.log import logger
-import datasets.dataset.jde as datasets
+from src.lib.opts import opts, OptsNamespace
+from src.lib.tracking_utils.utils import mkdir_if_missing
+from src.lib.tracking_utils.log import logger
+import src.lib.datasets.dataset.jde as datasets
 from track import eval_seq
 
 
 logger.setLevel(logging.INFO)
 
 
-def demo(opt):
+def demo(opt: OptsNamespace):
     result_root = opt.output_root if opt.output_root != '' else '.'
     mkdir_if_missing(result_root)
 
@@ -28,7 +32,7 @@ def demo(opt):
 
     frame_dir = None if opt.output_format == 'text' else osp.join(result_root, 'frame')
     eval_seq(opt, dataloader, 'mot', result_filename,
-             save_dir=frame_dir, show_image=False, frame_rate=frame_rate,
+             save_dir=frame_dir, show_image=opt.show_image, frame_rate=frame_rate,
              use_cuda=opt.gpus!=[-1])
 
     if opt.output_format == 'video':
