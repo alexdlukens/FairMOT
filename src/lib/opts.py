@@ -23,7 +23,9 @@ class OptsNamespace(argparse.Namespace):
         self.test: bool
         self.load_model: str
         self.resume: bool
-        self.gpus: str
+        self.gpus: list[int]
+        self.gpus_str: str
+        self.device: object
         self.num_workers: int
         self.not_cuda_benchmark: bool
         self.seed: int
