@@ -52,7 +52,7 @@ class KalmanFilter(object):
         self._std_weight_position = 1.0 / 20
         self._std_weight_velocity = 1.0 / 160
 
-    def initiate(self, measurement):
+    def initiate(self, measurement: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Create track from unassociated measurement.
 
         Parameters
@@ -128,7 +128,9 @@ class KalmanFilter(object):
 
         return mean, covariance
 
-    def project(self, mean, covariance):
+    def project(
+        self, mean: np.ndarray, covariance: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Project state distribution to measurement space.
 
         Parameters
@@ -159,7 +161,9 @@ class KalmanFilter(object):
         )
         return mean, covariance + innovation_cov
 
-    def multi_predict(self, mean, covariance):
+    def multi_predict(
+        self, mean: np.ndarray, covariance: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Run Kalman filter prediction step (Vectorized version).
         Parameters
         ----------
@@ -200,7 +204,9 @@ class KalmanFilter(object):
 
         return mean, covariance
 
-    def update(self, mean, covariance, measurement):
+    def update(
+        self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Run Kalman filter correction step.
 
         Parameters
@@ -239,8 +245,13 @@ class KalmanFilter(object):
         return new_mean, new_covariance
 
     def gating_distance(
-        self, mean, covariance, measurements, only_position=False, metric="maha"
-    ):
+        self,
+        mean: np.ndarray,
+        covariance: np.ndarray,
+        measurements: np.ndarray,
+        only_position: bool = False,
+        metric: str = "maha",
+    ) -> np.ndarray:
         """Compute gating distance between state distribution and measurements.
         A suitable distance threshold can be obtained from `chi2inv95`. If
         `only_position` is False, the chi-square distribution has 4 degrees of
@@ -278,7 +289,6 @@ class KalmanFilter(object):
             z = scipy.linalg.solve_triangular(
                 cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True
             )
-            squared_maha = np.sum(z * z, axis=0)
-            return squared_maha
+            return np.sum(z * z, axis=0)
         else:
             raise ValueError("invalid distance metric")
