@@ -49,8 +49,8 @@ model = model.to(device)
 model.eval()
     
 
-def post_process(dets, meta):
-    dets = dets.detach().cpu().numpy()
+def post_process(dets: torch.Tensor, meta) -> np.ndarray:
+    dets: np.ndarray = dets.detach().cpu().numpy()
     dets = dets.reshape(1, -1, dets.shape[2])
     dets = ctdet_post_process(dets.copy(), [meta['c']], [meta['s']],meta['out_height'], meta['out_width'], num_classes)
     for j in range(1, num_classes + 1):

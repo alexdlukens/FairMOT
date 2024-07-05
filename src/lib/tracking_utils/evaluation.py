@@ -1,10 +1,12 @@
-import os
-import numpy as np
 import copy
-import motmetrics as mm
-mm.lap.default_solver = 'lap'
+import os
 
-from tracking_utils.io import read_results, unzip_objs
+import motmetrics as mm
+import numpy as np
+
+from src.lib.tracking_utils.io import read_results, unzip_objs
+
+mm.lap.default_solver = 'lap'
 
 
 class Evaluator(object):

@@ -1,31 +1,30 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import _init_paths
+import logging
 import os
 import os.path as osp
-import cv2
-import logging
-import argparse
-import motmetrics as mm
+import pathlib
+import sys
+
 import numpy as np
-
-from tracker.fusetracker import FuseTracker
-from tracking_utils import visualization as vis
-from tracking_utils.log import logger
-from tracking_utils.timer import Timer
-from tracking_utils.evaluation import Evaluator
-import datasets.dataset.jde as datasets
 import torch
-from tracking_utils.utils import mkdir_if_missing, tlbr2tlwh
-from opts import opts
-from models.decode import mot_decode
-from utils.post_process import ctdet_post_process
-from models.model import create_model, load_model
+
+sys.path.append(str(pathlib.Path(__file__).parent.parent))
+
+import src._init_paths
+
+import src.lib.datasets.dataset.jde as datasets
+from src.lib.opts import opts, OptsNamespace
+from src.lib.tracking_utils.log import logger
+from src.lib.tracking_utils.timer import Timer
+from src.lib.tracking_utils.utils import mkdir_if_missing, tlbr2tlwh
+from src.lib.utils.post_process import ctdet_post_process
+
+from src.lib.models.decode import mot_decode
+from src.lib.models.model import create_model, load_model
 
 
-def write_results_score(filename, results):
+def write_results_score(filename: str, results):
     save_format = '{frame},{x1},{y1},{w},{h},{s}\n'
     with open(filename, 'w') as f:
         for frame_id, tlwhs, scores in results:
@@ -36,8 +35,8 @@ def write_results_score(filename, results):
     print('save results to {}'.format(filename))
 
 
-def post_process(opt, dets, meta):
-    dets = dets.detach().cpu().numpy()
+def post_process(opt: OptsNamespace, dets: torch.Tensor, meta: dict) -> np.ndarray:
+    dets: np.ndarray = dets.detach().cpu().numpy()
     dets = dets.reshape(1, -1, dets.shape[2])
     dets = ctdet_post_process(
         dets.copy(), [meta['c']], [meta['s']],
@@ -47,7 +46,7 @@ def post_process(opt, dets, meta):
     return dets[0]
 
 
-def merge_outputs(opt, detections):
+def merge_outputs(opt: OptsNamespace, detections):
     results = {}
     for j in range(1, opt.num_classes + 1):
         results[j] = np.concatenate(
@@ -64,7 +63,7 @@ def merge_outputs(opt, detections):
     return results
 
 
-def eval_seq(opt, dataloader, data_type, result_filename, save_dir=None, show_image=True, frame_rate=30):
+def eval_seq(opt: OptsNamespace, dataloader, data_type, result_filename, save_dir=None, show_image=True, frame_rate=30):
     if save_dir:
         mkdir_if_missing(save_dir)
     if opt.gpus[0] >= 0:
@@ -105,7 +104,7 @@ def eval_seq(opt, dataloader, data_type, result_filename, save_dir=None, show_im
         dets = post_process(opt, dets, meta)
         dets = merge_outputs(opt, [dets])[1]
 
-        dets = dets[dets[:, 4] > 0.1]
+        dets = dets[dets[:, 4] > 0.1] # remove low score detections
         dets[:, :4] = tlbr2tlwh(dets[:, :4])
 
         tlwhs = []
@@ -131,7 +130,6 @@ def main(opt, data_root='/data/MOT16/train', det_root=None, seqs=('MOT16-05',), 
     data_type = 'mot'
 
     # run tracking
-    accs = []
     n_frame = 0
     timer_avgs, timer_calls = [], []
     for seq in seqs:
