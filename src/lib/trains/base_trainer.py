@@ -6,11 +6,12 @@ import time
 import torch
 from progress.bar import Bar
 from models.data_parallel import DataParallel
+from opts import OptsNamespace
 from utils.utils import AverageMeter
 
 
 class ModleWithLoss(torch.nn.Module):
-    def __init__(self, model, loss):
+    def __init__(self, model: torch.nn.Module, loss):
         super(ModleWithLoss, self).__init__()
         self.model = model
         self.loss = loss
@@ -22,7 +23,7 @@ class ModleWithLoss(torch.nn.Module):
 
 
 class BaseTrainer(object):
-    def __init__(self, opt, model, optimizer=None):
+    def __init__(self, opt: OptsNamespace, model: torch.nn.Module, optimizer: torch.optim.Optimizer=None):
         self.opt = opt
         self.optimizer = optimizer
         self.loss_stats, self.loss = self._get_losses(opt)
