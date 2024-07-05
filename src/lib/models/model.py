@@ -35,6 +35,9 @@ def create_model(arch, heads, head_conv):
 def load_model(model, model_path, optimizer=None, resume=False, 
                lr=None, lr_step=None):
   start_epoch = 0
+  # check if model_path exists
+  if not os.path.exists(model_path):
+    raise FileNotFoundError('Model file not found: {}'.format(model_path))
   checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
   print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
   state_dict_ = checkpoint['state_dict']
