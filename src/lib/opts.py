@@ -1,10 +1,105 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
-import sys
+
+
+class Dataset:
+  def __init__(self, dataset_info: dict):
+    self.default_resolution: list[int] = dataset_info['default_resolution']
+    self.num_classes: int = dataset_info['num_classes']
+    self.mean: list[float] = dataset_info['mean']
+    self.std: list[float] = dataset_info['std']
+    self.nID: int = dataset_info['nID']
+    self.dataset: str = dataset_info['dataset']
+    
+class OptsNamespace(argparse.Namespace):
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
+    self.task: str
+    self.dataset: object
+    self.exp_id: str
+    self.test: bool
+    self.load_model: str
+    self.resume: bool
+    self.gpus: str
+    self.num_workers: int
+    self.not_cuda_benchmark: bool
+    self.seed: int
+    self.print_iter: int
+    self.hide_data_time: bool
+    self.save_all: bool
+    self.metric: str
+    self.vis_thresh: float
+    self.arch: str
+    self.head_conv: int
+    self.down_ratio: int
+    self.input_res: int
+    self.input_h: int
+    self.input_w: int
+    self.lr: float
+    self.lr_step: str
+    self.num_epochs: int
+    self.batch_size: int
+    self.master_batch_size: int
+    self.num_iters: int
+    self.val_intervals: int
+    self.trainval: bool
+    self.K: int
+    self.not_prefetch_test: bool
+    self.fix_res: bool
+    self.keep_res: bool
+    self.test_mot16: bool
+    self.val_mot15: bool
+    self.test_mot15: bool
+    self.val_mot16: bool
+    self.test_mot17: bool
+    self.val_mot17: bool
+    self.val_mot20: bool
+    self.test_mot20: bool
+    self.val_hie: bool
+    self.test_hie: bool
+    self.conf_thres: float
+    self.det_thres: float
+    self.nms_thres: float
+    self.track_buffer: int
+    self.min_box_area: float
+    self.input_video: str
+    self.output_format: str
+    self.output_root: str
+    self.data_cfg: str
+    self.data_dir: str
+    self.mse_loss: bool
+    self.reg_loss: str
+    self.hm_weight: float
+    self.off_weight: float
+    self.wh_weight: float
+    self.id_loss: str
+    self.id_weight: float
+    self.reid_dim: int
+    self.ltrb: bool
+    self.multi_loss: str
+    self.norm_wh: bool
+    self.dense_wh: bool
+    self.cat_spec_wh: bool
+    self.not_reg_offset: bool
+    self.heads: dict[str, int]
+    self.nID: int
+    self.img_size: tuple[int, int]
+    self.output_h: int
+    self.output_w: int
+    self.output_res: int
+    self.num_classes: int
+    self.mean: list[float]
+    self.std: list[float]
+    self.reg_offset: bool
+    self.pad: int
+    self.num_stacks: int
+    self.chunk_sizes: list[int]
+    self.root_dir: str
+    self.exp_dir: str
+    self.save_dir: str
+    self.debug_dir: str
 
 class opts(object):
   def __init__(self):
@@ -159,7 +254,8 @@ class opts(object):
     self.parser.add_argument('--not_reg_offset', action='store_true',
                              help='not regress local offset.')
 
-  def parse(self, args=''):
+  def parse(self, args='') -> OptsNamespace:
+    opt: OptsNamespace
     if args == '':
       opt = self.parser.parse_args()
     else:
@@ -204,7 +300,7 @@ class opts(object):
       opt.load_model = os.path.join(model_path, 'model_last.pth')
     return opt
 
-  def update_dataset_info_and_set_heads(self, opt, dataset):
+  def update_dataset_info_and_set_heads(self, opt: OptsNamespace, dataset: Dataset) -> OptsNamespace:
     input_h, input_w = dataset.default_resolution
     opt.mean, opt.std = dataset.mean, dataset.std
     opt.num_classes = dataset.num_classes
@@ -227,8 +323,7 @@ class opts(object):
         opt.heads.update({'reg': 2})
       opt.nID = dataset.nID
       opt.img_size = (1088, 608)
-      #opt.img_size = (864, 480)
-      #opt.img_size = (576, 320)
+
     else:
       assert 0, 'task not defined!'
     print('heads', opt.heads)
@@ -240,12 +335,9 @@ class opts(object):
                 'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
                 'dataset': 'jde', 'nID': 14455},
     }
-    class Struct:
-      def __init__(self, entries):
-        for k, v in entries.items():
-          self.__setattr__(k, v)
+
     opt = self.parse(args)
-    dataset = Struct(default_dataset_info[opt.task])
+    dataset = Dataset(default_dataset_info[opt.task])
     opt.dataset = dataset.dataset
     opt = self.update_dataset_info_and_set_heads(opt, dataset)
     return opt
