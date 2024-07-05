@@ -6,8 +6,9 @@ scipy
 progress
 motmetrics
 matplotlib
-lap
+git+https://github.com/gatagat/lap@master
 openpyxl
 Pillow
 tensorboardX
 fvcore
+-e git+https://github.com/lucasjinreal/DCNv2_latest@master#egg=dcnv2

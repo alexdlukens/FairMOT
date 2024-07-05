@@ -1,0 +1,5 @@
+wheel
+numpy<2
+torch
+cython
+torchvision
